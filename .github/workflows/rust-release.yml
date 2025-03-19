@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $ARCH = "${{ matrix.target }}".Split('-')[0]
-          Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName "target/release/sqlite3_chromaprint-$ARCH.dll"
+          Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName "sqlite3_chromaprint-$ARCH.dll"
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
