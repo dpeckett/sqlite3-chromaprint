@@ -34,7 +34,7 @@ jobs:
       
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev gcc-aarch64-linux-gnu
+        run: sudo apt update && sudo apt install -y libsqlite3-dev gcc-aarch64-linux-gnu
       
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -46,20 +46,28 @@ jobs:
       - name: Extract Architecture
         run: echo "ARCH=$(echo ${{ matrix.target }} | cut -d'-' -f1)" >> $GITHUB_ENV
       
-      - name: Rename Binaries
+      - name: Rename Binaries (Unix Like)
+        if: runner.os != 'Windows'
         run: |
           mv target/release/libsqlite3_chromaprint.so target/release/libsqlite3_chromaprint-${{ env.ARCH }}.so || true
           mv target/release/libsqlite3_chromaprint.dylib target/release/libsqlite3_chromaprint-${{ env.ARCH }}.dylib || true
-          mv target/release/sqlite3_chromaprint.dll target/release/sqlite3_chromaprint-${{ env.ARCH }}.dll || true
+
+      - name: Rename Binaries (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ($env:ARCH -eq 'x86_64') {
+            Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName sqlite3_chromaprint-x86_64.dll
+          }
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-binaries-${{ matrix.target }}
           path: |
-            target/release/libsqlite3_chromaprint-${{ env.ARCH }}.so
-            target/release/libsqlite3_chromaprint-${{ env.ARCH }}.dylib
-            target/release/sqlite3_chromaprint-${{ env.ARCH }}.dll
+            target/release/*.so
+            target/release/*.dylib
+            target/release/*.dll
 
   release:
     name: Create Release
