@@ -49,15 +49,15 @@ jobs:
       - name: Rename Binaries (Unix Like)
         if: runner.os != 'Windows'
         run: |
-          mv target/release/libsqlite3_chromaprint.so target/release/libsqlite3_chromaprint-${{ env.ARCH }}.so || true
-          mv target/release/libsqlite3_chromaprint.dylib target/release/libsqlite3_chromaprint-${{ env.ARCH }}.dylib || true
+          mv target/release/libsqlite3_chromaprint.so target/release/libsqlite3_chromaprint-linux-${{ env.ARCH }}.so || true
+          mv target/release/libsqlite3_chromaprint.dylib target/release/libsqlite3_chromaprint-darwin-${{ env.ARCH }}.dylib || true
 
       - name: Rename Binaries (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ARCH = "${{ matrix.target }}".Split('-')[0]
-          Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName "sqlite3_chromaprint-$ARCH.dll"
+          Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName "sqlite3_chromaprint-windows-$ARCH.dll"
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
