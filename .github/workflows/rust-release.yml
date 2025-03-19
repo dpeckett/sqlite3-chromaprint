@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build and Release
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,12 +32,31 @@ jobs:
       - name: Build
         run: cargo build --release
       
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: |
+          name: release-binaries-${{ matrix.os }}
+          path: |
             target/release/libsqlite3_chromaprint.so
             target/release/libsqlite3_chromaprint.dylib
             target/release/sqlite3_chromaprint.dll
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
