@@ -56,10 +56,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          if ($env:ARCH -eq 'x86_64') {
-            Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName sqlite3_chromaprint-x86_64.dll
-          }
-      
+          $ARCH = "${{ matrix.target }}".Split('-')[0]
+          Rename-Item -Path target/release/sqlite3_chromaprint.dll -NewName "target/release/sqlite3_chromaprint-$ARCH.dll"
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
