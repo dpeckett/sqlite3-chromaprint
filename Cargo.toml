@@ -1,0 +1,14 @@
+[package]
+name = "sqlite3-chromaprint"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rusty-chromaprint = "0.3.0"
+rusqlite = { version = "0.34.0", features = ["loadable_extension", "functions", "trace"] }
+base64 = "0.22.1"
+symphonia = { version = "0.5.4", features = ["all-codecs"] }
+anyhow = "1.0.97"
