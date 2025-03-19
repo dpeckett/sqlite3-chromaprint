@@ -3,7 +3,7 @@ name: Rust Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -11,7 +11,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,10 +30,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+          targets: ${{ matrix.target }}
       
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y libsqlite3-dev
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev gcc-aarch64-linux-gnu
       
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -32,14 +43,23 @@ jobs:
       - name: Build
         run: cargo build --release
       
+      - name: Extract Architecture
+        run: echo "ARCH=$(echo ${{ matrix.target }} | cut -d'-' -f1)" >> $GITHUB_ENV
+      
+      - name: Rename Binaries
+        run: |
+          mv target/release/libsqlite3_chromaprint.so target/release/libsqlite3_chromaprint-${{ env.ARCH }}.so || true
+          mv target/release/libsqlite3_chromaprint.dylib target/release/libsqlite3_chromaprint-${{ env.ARCH }}.dylib || true
+          mv target/release/sqlite3_chromaprint.dll target/release/sqlite3_chromaprint-${{ env.ARCH }}.dll || true
+      
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-binaries-${{ matrix.os }}
+          name: release-binaries-${{ matrix.target }}
           path: |
-            target/release/libsqlite3_chromaprint.so
-            target/release/libsqlite3_chromaprint.dylib
-            target/release/sqlite3_chromaprint.dll
+            target/release/libsqlite3_chromaprint-${{ env.ARCH }}.so
+            target/release/libsqlite3_chromaprint-${{ env.ARCH }}.dylib
+            target/release/sqlite3_chromaprint-${{ env.ARCH }}.dll
 
   release:
     name: Create Release
